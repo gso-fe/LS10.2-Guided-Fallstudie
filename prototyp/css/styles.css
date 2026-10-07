@@ -1,0 +1,20 @@
+/* Fallstudie – eigene Stile ergänzen Bootstrap, überschreiben nur gezielt. */
+
+/* Sichtbarer Tastatur-Fokus (Barrierefreiheit). */
+:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+/* Master-Detail: Detailspalte bleibt beim Scrollen im Blick (nur Desktop). */
+@media (min-width: 992px) {
+  .detail-pane { position: sticky; top: 1rem; }
+}
+
+/* Fehler-Zustand – WEG 2 (Alternative zur Bootstrap-Klasse .is-invalid), siehe
+   zustaende/zurueckweisen.html. Dynamisch über die Pseudoklasse :invalid, ohne JavaScript
+   (feiner: :user-invalid – erst rot, nachdem etwas eingegeben oder abgesendet wurde).
+   Bewusst auskommentiert, damit im Mockup WEG 1 (.is-invalid) aktiv bleibt.
+.form-control:invalid                     { border-color: #dc3545; }
+.form-control:invalid ~ .invalid-feedback { display: block; }
+*/

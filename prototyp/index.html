@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offene Nachweise – Ausbilder</title>
+    <link rel="stylesheet" href="vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <nav class="navbar bg-body-tertiary border-bottom">
+        <div class="container">
+          <a class="navbar-brand" href="index.html">Berichtsheft-App</a>
+          <span class="navbar-text">Ausbilder-Ansicht · K. Tari</span>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container py-4">
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <h1 class="h4 mb-0 me-auto">Offene Ausbildungsnachweise</h1>
+        <!-- Badge-Legende: Bedeutung immer zusätzlich als Text, nicht nur über Farbe -->
+        <span class="badge text-bg-primary">eingereicht</span>
+        <span class="badge text-bg-success">signiert</span>
+        <span class="badge text-bg-danger">zurückgewiesen</span>
+      </div>
+
+      <p class="text-muted small d-lg-none">
+        Tippen Sie einen Nachweis an, um ihn zu prüfen.
+      </p>
+
+      <!-- Mobil: nur die Liste (eine Spalte). Ab lg: Master-Detail (Liste + Detail nebeneinander). -->
+      <div class="row g-4">
+        <div class="col-12 col-lg-5">
+          <div class="list-group">
+            <a
+              href="zustaende/detail.html"
+              class="list-group-item list-group-item-action active"
+              aria-current="true"
+            >
+              <div
+                class="d-flex w-100 justify-content-between align-items-center"
+              >
+                <strong>José Schmidt-Da Silva</strong
+                ><span class="badge text-bg-primary">eingereicht</span>
+              </div>
+              <small>2. Ausbildungsjahr · Woche 06.02.–12.02. · Einkauf</small>
+            </a>
+            <a
+              href="zustaende/detail.html"
+              class="list-group-item list-group-item-action"
+            >
+              <div
+                class="d-flex w-100 justify-content-between align-items-center"
+              >
+                <strong>Mira Dokidis</strong
+                ><span class="badge text-bg-primary">eingereicht</span>
+              </div>
+              <small class="text-muted"
+                >2. Ausbildungsjahr · Woche 06.02.–12.02. · Vertrieb</small
+              >
+            </a>
+            <a
+              href="zustaende/detail.html"
+              class="list-group-item list-group-item-action"
+            >
+              <div
+                class="d-flex w-100 justify-content-between align-items-center"
+              >
+                <strong>Omar Workman</strong
+                ><span class="badge text-bg-primary">eingereicht</span>
+              </div>
+              <small class="text-muted"
+                >1. Ausbildungsjahr · Woche 06.02.–12.02. · Buchhaltung</small
+              >
+            </a>
+            <a
+              href="zustaende/detail.html"
+              class="list-group-item list-group-item-action"
+            >
+              <div
+                class="d-flex w-100 justify-content-between align-items-center"
+              >
+                <strong>Tatiana Westervelt</strong
+                ><span class="badge text-bg-primary">eingereicht</span>
+              </div>
+              <small class="text-muted"
+                >3. Ausbildungsjahr · Woche 06.02.–12.02. · Personal</small
+              >
+            </a>
+            <a
+              href="zustaende/detail.html"
+              class="list-group-item list-group-item-action"
+            >
+              <div
+                class="d-flex w-100 justify-content-between align-items-center"
+              >
+                <strong>Jakob Bergson</strong
+                ><span class="badge text-bg-primary">eingereicht</span>
+              </div>
+              <small class="text-muted"
+                >2. Ausbildungsjahr · Woche 06.02.–12.02. · Materialwirtschaft</small
+              >
+            </a>
+            <a
+              href="zustaende/detail.html"
+              class="list-group-item list-group-item-action"
+            >
+              <div
+                class="d-flex w-100 justify-content-between align-items-center"
+              >
+                <strong>Carter Rosser</strong
+                ><span class="badge text-bg-primary">eingereicht</span>
+              </div>
+              <small class="text-muted"
+                >1. Ausbildungsjahr · Woche 06.02.–12.02. · Vertrieb</small
+              >
+            </a>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-7 d-none d-lg-block">
+          <div class="card detail-pane">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h2 class="h5 mb-1">José Schmidt-Da Silva</h2>
+                  <p class="text-muted mb-3">
+                    2. Ausbildungsjahr · Woche 06.02.–12.02. · Abteilung Einkauf
+                  </p>
+                </div>
+                <span class="badge text-bg-primary">eingereicht</span>
+              </div>
+
+              <table class="table table-sm align-middle">
+                <thead>
+                  <tr>
+                    <th scope="col">Tag</th>
+                    <th scope="col">Tätigkeit</th>
+                    <th scope="col" class="text-end">Std.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Mo</th>
+                    <td>
+                      Angebote von drei Lieferanten eingeholt und verglichen
+                    </td>
+                    <td class="text-end">8</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Di</th>
+                    <td>Bestellungen erfasst; Wareneingänge im ERP gebucht</td>
+                    <td class="text-end">8</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Mi</th>
+                    <td>Eingangsrechnungen geprüft und kontiert</td>
+                    <td class="text-end">8</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Do</th>
+                    <td>Liefertermine nachgefasst; Auftragsbestätigungen abgeglichen</td>
+                    <td class="text-end">8</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Fr</th>
+                    <td>Lieferantenreklamation bearbeitet; Lieferantenstammdaten gepflegt</td>
+                    <td class="text-end">8</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <th scope="row" colspan="2" class="text-end">Summe</th>
+                    <td class="text-end fw-bold">40</td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <a href="zustaende/signiert.html" class="btn btn-success"
+                  >Signieren</a
+                >
+                <a
+                  href="zustaende/zurueckweisen.html"
+                  class="btn btn-outline-danger"
+                  >Zurückweisen…</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="container py-4 text-muted border-top">
+      <small
+        >Fallstudie · LS10.2 Web-UI-Prototyping · statischer Prototyp ohne
+        JavaScript</small
+      >
+    </footer>
+  </body>
+</html>

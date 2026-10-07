@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nachweis zurückweisen – José Schmidt-Da Silva</title>
+  <link rel="stylesheet" href="../vendor/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar bg-body-tertiary border-bottom">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html">Berichtsheft-App</a>
+        <span class="navbar-text">Ausbilder-Ansicht · K. Tari</span>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container py-4">
+    <a href="detail.html" class="link-secondary small">&larr; Zurück zum Nachweis</a>
+
+    <div class="card mt-2">
+      <div class="card-body">
+        <h1 class="h5 mb-1">Nachweis zurückweisen</h1>
+        <p class="text-muted mb-3">José Schmidt-Da Silva · Woche 06.02.–12.02.</p>
+
+        <!-- Fehler-Zustand: Kommentar ist Pflicht.
+             WEG 1 (hier verwendet): statische Bootstrap-Klasse .is-invalid — der Fehler ist im Mockup
+             *fest gesetzt*, damit der Zustand ohne JS und ohne echte Eingabe sichtbar ist. -->
+        <form action="#" method="post" novalidate>
+          <div class="mb-3">
+            <label for="kommentar" class="form-label">Grund der Zurückweisung</label>
+            <textarea class="form-control is-invalid" id="kommentar" name="kommentar" rows="4" aria-invalid="true"
+                      required aria-describedby="kommentarHilfe kommentarFehler"></textarea>
+            <div id="kommentarFehler" class="invalid-feedback">
+              Bitte geben Sie einen Grund an – ohne ihn kann der Nachweis nicht korrigiert werden.
+            </div>
+            <div id="kommentarHilfe" class="form-text">
+              Der Kommentar wird José Schmidt-Da Silva angezeigt.
+            </div>
+
+            <!-- ============================================================================
+                 WEG 2 (Alternative, reiner CSS-Weg über die Pseudoklasse :invalid) — bewusst
+                 auskommentiert, damit der Unterschied sichtbar wird:
+
+                 Statt die Klasse .is-invalid fest zu setzen, reagiert das Feld *dynamisch* auf die
+                 native Validierung. Dazu nur die Klasse .is-invalid (und aria-invalid) entfernen — novalidate
+                 darf am <form> bleiben (es unterdrückt nur die Fehlerblase des Browsers beim Absenden).
+                 Ein leeres Pflichtfeld ist automatisch :invalid:
+
+                   <textarea class="form-control" id="kommentar" name="kommentar" rows="4"
+                             required aria-describedby="kommentarHilfe kommentarFehler"></textarea>
+
+                 und in ../css/styles.css:
+                   .form-control:invalid                        { border-color: #dc3545; }
+                   .form-control:invalid ~ .invalid-feedback    { display: block; }
+
+                 Unterschied kurz:
+                 • .is-invalid = STATISCHE Demo-Klasse (immer rot, ideal fürs Mockup).
+                 • :invalid    = DYNAMISCHE Pseudoklasse (rot, solange das Feld ungültig ist – also schon
+                   beim Laden, bevor jemand etwas eingegeben hat).
+                 • :user-invalid = wie :invalid, aber erst rot, nachdem etwas eingegeben oder abgesendet wurde.
+                 Beide brauchen KEIN eigenes JavaScript.
+                 ============================================================================ -->
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-danger">Zurückweisen senden</button>
+            <a href="detail.html" class="btn btn-outline-secondary">Abbrechen</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="container py-4 text-muted border-top">
+    <small>Fallstudie · Zustand: Fehler (Pflichtfeld leer)</small>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kontrollfragen — Interaktiver Selbsttest</title>
+    <link rel="stylesheet" href="prototyp/vendor/bootstrap.min.css" />
+    <style>
+      :focus-visible {
+        outline: 3px solid #1d4ed8;
+        outline-offset: 2px;
+      }
+      #mc-options button {
+        white-space: normal;
+        text-align: left;
+      }
+      main {
+        max-width: 760px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="border-bottom bg-body-tertiary">
+      <div class="container py-3 d-flex flex-wrap align-items-center gap-2">
+        <h1 class="h4 mb-0 me-auto">Kontrollfragen — Interaktiver Selbsttest</h1>
+        <a href="kontrollfragen.md" class="small">Fragenkatalog als Text</a>
+      </div>
+    </header>
+
+    <main class="container py-4">
+      <section id="setup">
+        <p class="text-muted">
+          Interaktive Version der Fragen aus <code>kontrollfragen.md</code>. Wählen Sie die Themen aus, die
+          abgefragt werden sollen, und starten Sie den Selbsttest — die Fragen erscheinen in zufälliger
+          Reihenfolge. Bei Multiple-Choice-Fragen gibt es sofortiges Feedback; bei offenen Fragen vergleichen
+          Sie Ihre eigene Antwort mit der Musterlösung und schätzen selbst ein, ob Sie sie gewusst haben.
+        </p>
+        <fieldset class="mb-3">
+          <legend class="h6">Themen</legend>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="html-css-bootstrap" id="cat-html" checked />
+            <label class="form-check-label" for="cat-html">HTML/CSS/Bootstrap-Grundlagen</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="ui-zustaende" id="cat-states" checked />
+            <label class="form-check-label" for="cat-states">UI-Zustände</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="responsive" id="cat-responsive" checked />
+            <label class="form-check-label" for="cat-responsive">Responsive-Strategie</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="barrierefreiheit" id="cat-a11y" checked />
+            <label class="form-check-label" for="cat-a11y">Barrierefreiheit</label>
+          </div>
+        </fieldset>
+        <button id="start-btn" class="btn btn-primary" type="button">Selbsttest starten</button>
+        <p id="setup-error" class="text-danger small mt-2 d-none" role="alert">
+          Bitte wählen Sie mindestens ein Thema aus.
+        </p>
+      </section>
+
+      <section id="quiz" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span id="progress" class="text-muted small"></span>
+          <span id="scoreboard" class="small text-muted"></span>
+        </div>
+        <div class="progress mb-3" style="height: 6px">
+          <div
+            id="progress-bar"
+            class="progress-bar"
+            role="progressbar"
+            style="width: 0%"
+            aria-label="Fortschritt"
+          ></div>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <span id="category-badge" class="badge text-bg-secondary mb-2"></span>
+            <p id="question-text" class="fs-5"></p>
+            <div id="mc-options" class="d-grid gap-2 mb-3"></div>
+            <button id="reveal-btn" class="btn btn-outline-secondary d-none" type="button">
+              Antwort anzeigen
+            </button>
+            <div id="feedback" class="alert d-none mt-3" role="status" aria-live="polite"></div>
+            <div id="self-assess" class="d-none mt-2 d-flex gap-2">
+              <button class="btn btn-outline-success btn-sm" id="knew-btn" type="button">
+                Ich wusste es
+              </button>
+              <button class="btn btn-outline-danger btn-sm" id="didnt-know-btn" type="button">
+                Ich wusste es nicht
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+          <button id="abort-btn" class="btn btn-link btn-sm text-muted" type="button">
+            Test abbrechen
+          </button>
+          <button id="next-btn" class="btn btn-primary d-none" type="button">Weiter</button>
+        </div>
+      </section>
+
+      <section id="result" class="d-none">
+        <div class="alert alert-success" role="status"></div>
+        <button id="restart-btn" class="btn btn-primary" type="button">Neuer Durchlauf</button>
+      </section>
+    </main>
+
+    <script>
+      const CATEGORY_LABELS = {
+        "html-css-bootstrap": "HTML/CSS/Bootstrap-Grundlagen",
+        "ui-zustaende": "UI-Zustände",
+        responsive: "Responsive-Strategie",
+        barrierefreiheit: "Barrierefreiheit",
+      };
+
+      // Quelle der Wahrheit: kontrollfragen.md. Bei inhaltlichen Änderungen dort auch hier nachziehen
+      // (siehe CLAUDE.md).
+      const QUESTIONS = [
+        // --- HTML/CSS/Bootstrap-Grundlagen ---
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Welches Element ist im <code>&lt;head&gt;</code> eines gültigen HTML5-Dokuments das
+            einzige echte Pflicht-Element?`,
+          options: [
+            `<code>&lt;title&gt;</code>`,
+            `<code>&lt;meta charset&gt;</code>`,
+            `<code>&lt;link rel="stylesheet"&gt;</code>`,
+            `<code>&lt;style&gt;</code>`,
+          ],
+          correct: 0,
+          explanation: `<code>&lt;title&gt;</code> ist das einzige Element, das ein gültiges HTML5-Dokument im
+            <code>&lt;head&gt;</code> zwingend benötigt. <code>charset</code> sollte zwar ebenfalls so früh
+            wie möglich stehen, ist aber kein Pflicht-Element im selben Sinne.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Ein Kollege will eine Überschrift optisch verkleinern, indem er <code>&lt;h1&gt;</code>
+            durch <code>&lt;h4&gt;</code> ersetzt. Ist das die richtige Lösung?`,
+          options: [
+            `Ja, das Ergebnis sieht gleich aus`,
+            `Nein — das ändert die Bedeutung/Struktur statt nur die Optik`,
+            `Ja, weil <code>&lt;h1&gt;</code> ohnehin nur einmal pro Seite erlaubt ist`,
+            `Nein, weil <code>&lt;h4&gt;</code> ungültiges HTML ist`,
+          ],
+          correct: 1,
+          explanation: `<code>&lt;h1&gt;</code> legt die Bedeutung fest (Dokumentstruktur, wichtig für
+            Screenreader und Suchmaschinen), nicht die Schriftgröße. Richtig wäre, <code>&lt;h1&gt;</code>
+            als Element zu behalten und nur die Optik über CSS zu ändern.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Was unterscheidet das <code>id</code>-Attribut grundsätzlich vom
+            <code>class</code>-Attribut?`,
+          options: [
+            `<code>id</code> darf pro Dokument nur einmal vorkommen, <code>class</code> beliebig oft`,
+            `<code>id</code> ist nur für CSS, <code>class</code> nur für JavaScript`,
+            `<code>class</code> darf nur einmal vorkommen, <code>id</code> beliebig oft`,
+            `Beide sind technisch identisch`,
+          ],
+          correct: 0,
+          explanation: `<code>id</code> adressiert ein einzelnes Element eindeutig (z. B. als Sprungziel für
+            <code>aria-describedby</code> oder <code>label[for]</code>); <code>class</code> gruppiert
+            beliebig viele Elemente, meist für CSS- oder JS-Zugriff.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Welches Attribut verbindet ein <code>&lt;label&gt;</code> fachlich mit einem
+            Eingabefeld?`,
+          options: [`<code>for</code>`, `<code>name</code>`, `<code>id</code>`, `<code>aria-label</code>`],
+          correct: 0,
+          explanation: `Das Attribut <code>for</code> am <code>&lt;label&gt;</code> verweist auf die
+            <code>id</code> des zugehörigen Feldes.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Was bewirkt das Attribut <code>required</code> an einem Eingabefeld, ganz ohne eigenes
+            JavaScript?`,
+          options: [
+            `Nichts, ohne JavaScript bleibt es wirkungslos`,
+            `Der Browser verweigert automatisch das Absenden eines leeren Feldes (native Validierung)`,
+            `Das Feld wird automatisch ausgefüllt`,
+            `Das Feld wird unsichtbar, bis es ausgefüllt ist`,
+          ],
+          correct: 1,
+          explanation: `Der Browser führt automatisch eine native Validierung durch: Das Feld wird als
+            <code>:invalid</code> markiert, solange es leer ist, und das Formular lässt sich nicht
+            absenden.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "open",
+          question: `Nennen Sie die drei Arten, CSS in eine HTML-Seite einzubinden.`,
+          explanation: `Inline (<code>style="…"</code> direkt am Element), intern (<code>&lt;style&gt;</code>
+            im <code>&lt;head&gt;</code>), extern (<code>&lt;link rel="stylesheet"&gt;</code> auf eine
+            separate Datei).`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Was ist der Hauptnachteil von inline-<code>style</code>-Angaben in einem Projekt mit
+            mehreren Seiten?`,
+          options: [
+            `Sie lassen sich nicht wiederverwenden und überschreiben fast alles andere in der Kaskade`,
+            `Sie werden von Browsern nicht unterstützt`,
+            `Sie dürfen nur einmal pro Seite verwendet werden`,
+            `Sie benötigen zwingend JavaScript`,
+          ],
+          correct: 0,
+          explanation: `Inline-Styles lassen sich nicht wiederverwenden — eine Änderung müsste auf jeder
+            Seite einzeln vorgenommen werden — und sie überschreiben durch ihre hohe Spezifität in der
+            Kaskade fast jede andere Regel.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "open",
+          question: `Aus welchen vier Schichten besteht das CSS-Box-Modell, von innen nach außen?`,
+          explanation: `<code>content</code>, <code>padding</code>, <code>border</code>,
+            <code>margin</code>.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "open",
+          question: `Begründen Sie, warum der CSS-Ruhezustand eines Elements (<code>default</code>) keine
+            eigene Pseudoklasse besitzt.`,
+          explanation: `<code>default</code> ist keine eigene, abfragbare Bedingung, sondern das, was
+            automatisch gilt, solange keine spezifischere Regel (z. B. <code>:hover</code> oder
+            <code>[disabled]</code>) zutrifft — die unqualifizierte Grundregel des Elements. Es gibt daher
+            keinen Selektor, der ihn gezielt ansprechen müsste.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Was unterscheidet eine Bootstrap-Utility-Klasse (z. B. <code>d-flex</code>) von einer
+            Bootstrap-Komponente (z. B. <code>card</code>)?`,
+          options: [
+            `Eine Utility-Klasse setzt eine einzelne CSS-Eigenschaft, eine Komponente ist ein
+              vorgefertigter, mehrteiliger UI-Baustein`,
+            `Beide sind identisch, nur unterschiedlich benannt`,
+            `Utility-Klassen funktionieren nur mit JavaScript`,
+            `Komponenten lassen sich nicht mit Utility-Klassen kombinieren`,
+          ],
+          correct: 0,
+          explanation: `Eine Utility-Klasse setzt genau eine CSS-Eigenschaft. Eine Komponente ist ein
+            vorgefertigter, aus mehreren HTML-Elementen und Klassen zusammengesetzter UI-Baustein mit
+            eigenem CSS und oft bereits enthaltenen Zustandsvarianten.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "open",
+          question: `Nennen Sie drei semantische HTML5-Elemente, die wiederkehrende Seitenbereiche gliedern,
+            und beschreiben Sie kurz deren Aufgabe.`,
+          explanation: `Zum Beispiel: <code>header</code> (Kopfbereich, oft mit Navigation/Logo),
+            <code>nav</code> (Navigationsblock), <code>main</code> (Hauptinhalt der Seite),
+            <code>footer</code> (Fußbereich). Diese Elemente tragen von sich aus keine eigene Optik, geben
+            aber Screenreadern und Suchmaschinen eine erkennbare Landmarken-Struktur.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Warum sollte eine Aufzählung in der Regel mit <code>&lt;ul&gt;</code>/<code>&lt;li&gt;</code>
+            ausgezeichnet werden statt mit mehreren <code>&lt;div&gt;</code>-Elementen?`,
+          options: [
+            `<code>ul</code>/<code>li</code> tragen eine eigene Bedeutung, die ein Screenreader als
+              Aufzählung ankündigt`,
+            `<code>div</code>-Elemente sind in HTML nicht erlaubt`,
+            `<code>ul</code>/<code>li</code> sind schneller zu laden`,
+            `Es gibt keinen Unterschied`,
+          ],
+          correct: 0,
+          explanation: `<code>ul</code>/<code>li</code> tragen eine eigene Bedeutung — eine Aufzählung —,
+            die ein Screenreader als solche ankündigt und durch die sich gezielt navigieren lässt.
+            <code>div</code> ist bedeutungslos und liefert diese Information nicht.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Wann ist ein bewusst leeres <code>alt=""</code> die richtige Lösung für ein Bild?`,
+          options: [
+            `Wenn das Bild rein dekorativ ist und keinen eigenen Informationswert hat`,
+            `Immer, alt-Texte sind generell unnötig`,
+            `Nur bei sehr großen Bildern`,
+            `Nie, <code>alt</code> darf niemals leer sein`,
+          ],
+          correct: 0,
+          explanation: `Der <code>alt</code>-Text muss normalerweise den Inhalt des Bildes wiedergeben. Ein
+            bewusst leeres <code>alt=""</code> ist richtig, wenn das Bild rein dekorativ ist und keinen
+            eigenen Informationswert hat.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "open",
+          question: `Nennen Sie drei typische <code>&lt;input&gt;</code>-Typen und beschreiben Sie jeweils
+            den praktischen Vorteil gegenüber <code>type="text"</code>.`,
+          explanation: `Zum Beispiel: <code>email</code> (grobe Formatprüfung, @-Taste auf Mobilgeräten),
+            <code>password</code> (verdeckt die Eingabe), <code>number</code> (Ziffernblock auf dem
+            Smartphone, erlaubt <code>min</code>/<code>max</code>), <code>date</code> (liefert einen nativen
+            Datumspicker).`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Was unterscheidet <code>&lt;textarea&gt;</code> von <code>&lt;input type="text"&gt;</code>?`,
+          options: [
+            `<code>textarea</code> ist für mehrzeiligen Freitext gedacht und lässt sich meist in der Höhe
+              ziehen`,
+            `<code>textarea</code> kann nur Zahlen enthalten`,
+            `Es gibt keinen Unterschied`,
+            `<code>textarea</code> benötigt zwingend ein <code>type</code>-Attribut`,
+          ],
+          correct: 0,
+          explanation: `<code>textarea</code> ist für mehrzeiligen Freitext gedacht und lässt sich in den
+            meisten Browsern zusätzlich in der Höhe ziehen. Es kennt kein <code>type</code>-Attribut, da es
+            von sich aus bereits auf einen Zweck festgelegt ist.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Wann ist ein <code>&lt;select&gt;</code>-Element die bessere Wahl gegenüber mehreren
+            Radio-Buttons?`,
+          options: [
+            `Bei einer längeren, festen Liste, aus der genau eine Option gewählt wird`,
+            `Wenn mehrere Optionen gleichzeitig gewählt werden sollen`,
+            `Nie, <code>select</code> ist veraltet`,
+            `Nur bei genau zwei Optionen`,
+          ],
+          correct: 0,
+          explanation: `Bei einer längeren, festen, bekannten Liste, aus der genau eine Option gewählt
+            werden soll, nimmt ein Dropdown deutlich weniger Platz ein als eine vollständig ausgeklappte
+            Liste von Radio-Buttons.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Was unterscheidet eine Checkbox grundsätzlich von einem Radio-Button?`,
+          options: [
+            `Radio = genau eine Auswahl aus einer Gruppe, Checkbox = beliebig viele unabhängige Auswahlen`,
+            `Checkbox = genau eine Auswahl, Radio = beliebig viele`,
+            `Beide erlauben nur eine Auswahl`,
+            `Beide erlauben beliebig viele Auswahlen`,
+          ],
+          correct: 0,
+          explanation: `Radio-Buttons erlauben genau eine Auswahl aus einer Gruppe mit gleichem
+            <code>name</code>; Checkboxen erlauben beliebig viele unabhängige Auswahlen.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Was passiert, wenn man bei einem <code>&lt;button&gt;</code> innerhalb eines Formulars
+            das Attribut <code>type</code> weglässt?`,
+          options: [
+            `Er wird automatisch zu <code>type="submit"</code>`,
+            `Er wird automatisch zu <code>type="button"</code> (tut nichts)`,
+            `Das Formular wird ungültig`,
+            `Der Button wird unsichtbar`,
+          ],
+          correct: 0,
+          explanation: `Lässt man <code>type</code> weg, ist ein <code>&lt;button&gt;</code> innerhalb eines
+            Formulars automatisch <code>submit</code> — eine häufige Fehlerquelle, etwa wenn ein
+            „Löschen"-Button ungewollt das Formular absendet.`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "open",
+          question: `Nennen Sie drei CSS-Pseudoklassen, die einen UI-Zustand ansprechen, und beschreiben Sie
+            kurz, wann sie jeweils greifen.`,
+          explanation: `Zum Beispiel: <code>:hover</code> (Maus über dem Element), <code>:focus</code>
+            (Element per Tastatur/Klick fokussiert), <code>:disabled</code> (Element deaktiviert),
+            <code>:invalid</code> (aktuelle Eingabe erfüllt die Validierung nicht).`,
+        },
+        {
+          category: "html-css-bootstrap",
+          type: "mc",
+          question: `Was unterscheidet die Einheit <code>rem</code> von <code>px</code>?`,
+          options: [
+            `<code>rem</code> ist relativ zur Schriftgrößen-Einstellung, <code>px</code> ist ein fester,
+              absoluter Wert`,
+            `<code>px</code> ist relativ, <code>rem</code> ist absolut`,
+            `Beide sind exakt identisch`,
+            `<code>rem</code> funktioniert nur in Bootstrap`,
+          ],
+          correct: 0,
+          explanation: `<code>px</code> ist ein absoluter, fester Wert; <code>rem</code> ist relativ zur
+            Schriftgrößen-Einstellung und skaliert daher mit, wenn jemand den Browser-Zoom oder eine größere
+            Schrift eingestellt hat.`,
+        },
+
+        // --- UI-Zustände ---
+        {
+          category: "ui-zustaende",
+          type: "open",
+          question: `Nennen Sie die drei Auslöser, aus denen sich der Zustand eines UI-Elements ändern
+            kann.`,
+          explanation: `Interaktion (reagiert das Element unmittelbar auf eine Nutzerhandlung?),
+            Daten/Prozess (hängt der Zustand von einer Phase eines Vorgangs der Anwendung ab?), Validierung
+            (wird eine Eingabe gegen fachliche Anforderungen geprüft?).`,
+        },
+        {
+          category: "ui-zustaende",
+          type: "mc",
+          question: `Welche Interaktions-Zustände durchläuft ein Button typischerweise, ausgehend vom
+            Ruhezustand?`,
+          options: [
+            `<code>default → hover → focus → active</code> (ggf. <code>disabled</code>)`,
+            `<code>leer → lädt → Erfolg → Fehler</code>`,
+            `<code>unberührt → in Bearbeitung → gültig → ungültig</code>`,
+            `sichtbar → unsichtbar`,
+          ],
+          correct: 0,
+          explanation: `<code>default → hover → focus → active</code>, und zusätzlich
+            <code>disabled</code>, wenn er nicht bedienbar sein soll.`,
+        },
+        {
+          category: "ui-zustaende",
+          type: "open",
+          question: `Ein Absenden-Button wird beim Klick deaktiviert und zeigt zugleich einen
+            Lade-Spinner. Welche Auslöser wirken hier zusammen, und wie sollten Sie das in einem
+            Zustandsdiagramm vermerken?`,
+          explanation: `Es kombinieren sich ein Interaktions-Auslöser (<code>disabled</code>) und ein
+            Daten-/Prozess-Auslöser (<code>lädt</code>) an ein und demselben Element. Im Zustandsdiagramm
+            hält man das am besten als Kombination zweier unabhängiger Auslöser an derselben Stelle fest,
+            nicht als mehrere isolierte Einzelzustände.`,
+        },
+        {
+          category: "ui-zustaende",
+          type: "mc",
+          question: `Was unterscheidet Daten-/Prozess-Zustände grundsätzlich von Interaktions-Zuständen?`,
+          options: [
+            `Bei Interaktion entscheidet die Nutzer*in, bei Daten/Prozess entscheidet die App`,
+            `Beide werden ausschließlich von der Nutzer*in ausgelöst`,
+            `Daten/Prozess-Zustände gibt es nur bei Formularen`,
+            `Es gibt keinen Unterschied`,
+          ],
+          correct: 0,
+          explanation: `Bei Interaktions-Zuständen entscheidet die Nutzer*in unmittelbar (Hover, Klick). Bei
+            Daten-/Prozess-Zuständen entscheidet die Anwendung selbst, in welcher Phase eines Vorgangs sie
+            sich gerade befindet.`,
+        },
+        {
+          category: "ui-zustaende",
+          type: "open",
+          question: `Nennen Sie je einen Vor- und Nachteil der statischen Bootstrap-Klasse
+            <code>.is-invalid</code> gegenüber der dynamischen Pseudoklasse <code>:invalid</code>.`,
+          explanation: `<code>.is-invalid</code> (statisch) zeigt den Zustand unabhängig vom tatsächlichen
+            Feldinhalt, bis die Klasse aktiv entfernt wird — nützlich, um einen Zustand gezielt zu
+            erzwingen. <code>:invalid</code> (dynamisch) reagiert automatisch auf die native Validierung
+            und bleibt immer aktuell, lässt sich aber nicht unabhängig vom Feldinhalt erzwingen.`,
+        },
+        {
+          category: "ui-zustaende",
+          type: "mc",
+          question: `Was liest ein Screenreader für ein fokussiertes Element im Kern vor, und in welcher
+            Reihenfolge?`,
+          options: [
+            `Name, Rolle, Zustand, optional Beschreibung`,
+            `Nur die Farbe des Elements`,
+            `Zustand, dann Name, dann Rolle`,
+            `Nur den sichtbaren Text, ohne Rolle oder Zustand`,
+          ],
+          correct: 0,
+          explanation: `Name, Rolle, Zustand und optional eine Beschreibung — in dieser Reihenfolge.`,
+        },
+        {
+          category: "ui-zustaende",
+          type: "open",
+          question: `Warum darf ein Statuswechsel (z. B. „gültig"/„ungültig") niemals ausschließlich über
+            Farbe kommuniziert werden? Nennen Sie eine alternative Umsetzung.`,
+          explanation: `Farbe allein ist für farbenblinde oder nicht-sehende Nutzer*innen nicht wahrnehmbar
+            bzw. nicht unterscheidbar. Alternative: zusätzlich ein Text (z. B. ein Fehlertext) oder ein
+            Icon, das denselben Zustand unabhängig von der Farbwahrnehmung kommuniziert.`,
+        },
+
+        // --- Responsive-Strategie ---
+        {
+          category: "responsive",
+          type: "mc",
+          question: `Was ist der grundlegende Unterschied zwischen Progressive Enhancement und Graceful
+            Degradation?`,
+          options: [
+            `PE beginnt mit einer einfachen Basis und erweitert sie; GD beginnt mit der Vollversion und
+              lässt sie zurückfallen`,
+            `Beide sind exakt dasselbe Vorgehen`,
+            `PE funktioniert nur mit JavaScript`,
+            `GD ist nur für Desktop-Seiten gedacht`,
+          ],
+          correct: 0,
+          explanation: `Progressive Enhancement beginnt mit einer einfachen, garantiert funktionierenden
+            Basis und erweitert sie, sobald mehr Platz oder Möglichkeiten vorhanden sind. Graceful
+            Degradation beginnt umgekehrt mit der vollen, anspruchsvollen Version und lässt sie bei
+            fehlenden Voraussetzungen kontrolliert zurückfallen.`,
+        },
+        {
+          category: "responsive",
+          type: "mc",
+          question: `Welche Media-Query-Richtung passt zu Mobile-First — <code>min-width</code> oder
+            <code>max-width</code>?`,
+          options: [
+            `<code>min-width</code> — Basis-Regeln gelten für die kleinste Breite, werden nur ergänzt`,
+            `<code>max-width</code> — Basis-Regeln gelten für die größte Breite, werden zurückgenommen`,
+            `Beide werden immer gleichzeitig verwendet`,
+            `Keine von beiden, Mobile-First braucht keine Media Queries`,
+          ],
+          correct: 0,
+          explanation: `<code>min-width</code>: Die Basis-Regeln gelten für die kleinste Breite und werden
+            ab einer bestimmten Breite nur ergänzt, nie zurückgenommen — das entspricht der
+            Erweiterungs-Richtung von Progressive Enhancement.`,
+        },
+        {
+          category: "responsive",
+          type: "open",
+          question: `Ein Entwickler schreibt zuerst CSS für die volle Desktop-Breite und ergänzt dann
+            <code>max-width</code>-Regeln für kleine Bildschirme. Welcher Strategie entspricht das, und
+            welches Risiko birgt dieser Ansatz typischerweise?`,
+          explanation: `Das ist strukturell Graceful Degradation (Desktop-First). Typisches Risiko: Der
+            „Rückfall" für kleine Bildschirme wird in der Praxis seltener gepflegt und getestet als die
+            Version, mit der man begonnen hat.`,
+        },
+        {
+          category: "responsive",
+          type: "mc",
+          question: `Wie viele feste Breakpoints definiert Bootstrap standardmäßig?`,
+          options: [
+            `Fünf (<code>sm</code>, <code>md</code>, <code>lg</code>, <code>xl</code>, <code>xxl</code>)`,
+            `Drei`,
+            `Zehn`,
+            `Es gibt keine festen Breakpoints`,
+          ],
+          correct: 0,
+          explanation: `Fünf (<code>sm</code>, <code>md</code>, <code>lg</code>, <code>xl</code>,
+            <code>xxl</code>). Technisch sind das nichts anderes als vordefinierte
+            <code>min-width</code>-Media-Queries, die über Klassen-Kürzel angesprochen werden, statt sie
+            selbst zu schreiben.`,
+        },
+        {
+          category: "responsive",
+          type: "open",
+          question: `Erklären Sie an einem eigenen, nicht aus der Fallstudie stammenden Beispiel, wie eine
+            einzige Klassenkombination zwei Bildschirmbreiten gleichzeitig beschreiben kann.`,
+          explanation: `Offene Frage, Musterlösung z. B.: <code>col-12 col-md-6</code> beschreibt
+            gleichzeitig „volle Breite unterhalb von <code>md</code>" und „halbe Breite ab <code>md</code>"
+            — eine einzige Klassenkombination für zwei Bildschirmbreiten, ganz ohne eigene
+            <code>@media</code>-Regel.`,
+        },
+        {
+          category: "responsive",
+          type: "mc",
+          question: `Welche Leitfrage sollten Sie sich laut Faustregel bei jeder Layout-Entscheidung
+            stellen?`,
+          options: [
+            `„Was sieht die kleinste Breite? Was kommt ab welcher Breite dazu?"`,
+            `„Was fällt beim Verkleinern weg?"`,
+            `„Wie sieht es auf dem größten Monitor aus?"`,
+            `„Welche Farbe passt am besten?"`,
+          ],
+          correct: 0,
+          explanation: `„Was sieht die kleinste Breite? Was kommt ab welcher Breite dazu?" — nicht „Was
+            fällt beim Verkleinern weg?".`,
+        },
+
+        // --- Barrierefreiheit ---
+        {
+          category: "barrierefreiheit",
+          type: "mc",
+          question: `Wofür steht das Akronym POUR?`,
+          options: [
+            `Perceivable, Operable, Understandable, Robust`,
+            `Performance, Optimization, Usability, Reliability`,
+            `Public, Open, Universal, Responsive`,
+            `Progressive, Operable, Usable, Readable`,
+          ],
+          correct: 0,
+          explanation: `Perceivable (wahrnehmbar), Operable (bedienbar), Understandable (verständlich),
+            Robust (robust) — die vier Grundprinzipien der WCAG.`,
+        },
+        {
+          category: "barrierefreiheit",
+          type: "open",
+          question: `Erklären Sie den grundsätzlichen Unterschied zwischen Usability und Barrierefreiheit
+            anhand der jeweiligen Zielgruppe.`,
+          explanation: `Usability fragt, ob die vorgesehene Zielgruppe in einem bestimmten Nutzungskontext
+            gut zurechtkommt. Barrierefreiheit fragt, ob irgendjemand, der das Produkt nutzen möchte oder
+            muss, ausgeschlossen wird — ausdrücklich auch Personen außerhalb der ursprünglich geplanten
+            Zielgruppe.`,
+        },
+        {
+          category: "barrierefreiheit",
+          type: "mc",
+          question: `Seit wann ist Barrierefreiheit für öffentliche Stellen des Bundes in Deutschland
+            verbindlich vorgeschrieben?`,
+          options: [
+            `Seit 2011 (Novelle 2019) durch die BITV 2.0`,
+            `Erst seit 2025`,
+            `Seit 1990`,
+            `Es gibt keine entsprechende Pflicht`,
+          ],
+          correct: 0,
+          explanation: `Seit 2011 (Novelle 2019) durch die BITV 2.0, auf Basis des BGG von 2002.`,
+        },
+        {
+          category: "barrierefreiheit",
+          type: "open",
+          question: `Ist ein privates deutsches Unternehmen zur digitalen Barrierefreiheit verpflichtet?
+            Begründen Sie anhand der aktuellen Rechtslage.`,
+          explanation: `Seit dem 28.06.2025 ja, für bestimmte Produkte/Dienstleistungen (u. a. Online-Shops,
+            Bankdienstleistungen, E-Books, Teile der Telekommunikation) — durch das
+            Barrierefreiheitsstärkungsgesetz (BFSG), das die EU-Richtlinie 2019/882 umsetzt. Davor war
+            Barrierefreiheit für private Anbieter freiwillig; es gibt weiterhin Ausnahmen, z. B. für
+            Kleinstunternehmen bei reinen Dienstleistungen.`,
+        },
+        {
+          category: "barrierefreiheit",
+          type: "mc",
+          question: `Auf welche gemeinsame technische Grundlage verweisen sowohl die BITV 2.0 als auch das
+            BFSG inhaltlich?`,
+          options: [
+            `Die europäische Norm EN 301 549, die die WCAG übernimmt`,
+            `Ein rein deutsches Normenwerk ohne internationalen Bezug`,
+            `Jedes Gesetz definiert eigene, unabhängige Kriterien`,
+            `ISO 9001`,
+          ],
+          correct: 0,
+          explanation: `Die europäische Norm EN 301 549, die ihrerseits weitgehend die internationalen WCAG
+            übernimmt (meist Konformitätsstufe AA).`,
+        },
+        {
+          category: "barrierefreiheit",
+          type: "open",
+          question: `Nennen Sie für jedes der vier POUR-Prinzipien eine konkrete, kleine
+            Umsetzungsmaßnahme (nicht aus der Fallstudie).`,
+          explanation: `Offene Frage, Musterlösung z. B.: Wahrnehmbar — Alternativtext für Bilder; Bedienbar
+            — vollständige Tastaturbedienbarkeit mit sichtbarem Fokus; Verständlich — konkrete statt
+            generische Fehlermeldungen; Robust — valides, semantisches HTML, ARIA nur ergänzend.`,
+        },
+        {
+          category: "barrierefreiheit",
+          type: "mc",
+          question: `Was besagt die Faustregel zum Verhältnis von nativem HTML und ARIA?`,
+          options: [
+            `Natives HTML zuerst nutzen, ARIA nur ergänzen, wo sonst Information verloren ginge`,
+            `ARIA sollte natives HTML immer ersetzen`,
+            `ARIA ist nur für Screenreader-Hersteller relevant`,
+            `Natives HTML und ARIA dürfen nie kombiniert werden`,
+          ],
+          correct: 0,
+          explanation: `Ein natives HTML-Element mit passendem Attribut (z. B. <code>disabled</code>,
+            <code>required</code>) ist oft schon barrierefrei — ARIA ergänzt nur dort, wo sonst Information
+            verloren ginge, und ersetzt niemals semantisches HTML.`,
+        },
+      ];
+
+      const state = {
+        queue: [],
+        index: 0,
+        correct: 0,
+        wrong: 0,
+        knew: 0,
+        didntKnow: 0,
+        answered: false,
+      };
+
+      function shuffle(array) {
+        const copy = array.slice();
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function $(id) {
+        return document.getElementById(id);
+      }
+
+      function startQuiz() {
+        const checked = Array.from(
+          document.querySelectorAll('#setup input[type="checkbox"]:checked')
+        ).map((cb) => cb.value);
+        const pool = QUESTIONS.filter((q) => checked.includes(q.category));
+        if (pool.length === 0) {
+          $("setup-error").classList.remove("d-none");
+          return;
+        }
+        $("setup-error").classList.add("d-none");
+        state.queue = shuffle(pool);
+        state.index = 0;
+        state.correct = 0;
+        state.wrong = 0;
+        state.knew = 0;
+        state.didntKnow = 0;
+        $("setup").classList.add("d-none");
+        $("result").classList.add("d-none");
+        $("quiz").classList.remove("d-none");
+        showQuestion();
+      }
+
+      function showQuestion() {
+        const q = state.queue[state.index];
+        state.answered = false;
+
+        $("progress").textContent = `Frage ${state.index + 1} von ${state.queue.length}`;
+        $("progress-bar").style.width = `${(state.index / state.queue.length) * 100}%`;
+        updateScoreboard();
+        $("category-badge").textContent = CATEGORY_LABELS[q.category];
+        $("question-text").innerHTML = q.question;
+
+        const optionsEl = $("mc-options");
+        optionsEl.innerHTML = "";
+        const feedback = $("feedback");
+        feedback.className = "alert d-none mt-3";
+        feedback.innerHTML = "";
+        $("self-assess").classList.add("d-none");
+        $("next-btn").classList.add("d-none");
+        const revealBtn = $("reveal-btn");
+
+        if (q.type === "mc") {
+          revealBtn.classList.add("d-none");
+          q.options.forEach((opt, i) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn btn-outline-primary";
+            btn.innerHTML = opt;
+            btn.addEventListener("click", () => handleMcAnswer(i));
+            optionsEl.appendChild(btn);
+          });
+        } else {
+          revealBtn.classList.remove("d-none");
+        }
+      }
+
+      function handleMcAnswer(selectedIndex) {
+        if (state.answered) return;
+        state.answered = true;
+        const q = state.queue[state.index];
+        const buttons = Array.from(document.querySelectorAll("#mc-options button"));
+        buttons.forEach((btn, i) => {
+          btn.disabled = true;
+          if (i === q.correct) {
+            btn.classList.remove("btn-outline-primary");
+            btn.classList.add("btn-success");
+            btn.insertAdjacentHTML("beforeend", ' <span aria-hidden="true">✓</span>');
+          } else if (i === selectedIndex) {
+            btn.classList.remove("btn-outline-primary");
+            btn.classList.add("btn-danger");
+            btn.insertAdjacentHTML("beforeend", ' <span aria-hidden="true">✗</span>');
+          }
+        });
+        const correct = selectedIndex === q.correct;
+        if (correct) {
+          state.correct++;
+        } else {
+          state.wrong++;
+        }
+        const feedback = $("feedback");
+        feedback.classList.remove("d-none");
+        feedback.classList.add(correct ? "alert-success" : "alert-danger");
+        feedback.innerHTML = `<strong>${correct ? "Richtig." : "Leider falsch."}</strong> ${q.explanation}`;
+        $("next-btn").classList.remove("d-none");
+        updateScoreboard();
+      }
+
+      function handleReveal() {
+        const q = state.queue[state.index];
+        $("reveal-btn").classList.add("d-none");
+        const feedback = $("feedback");
+        feedback.classList.remove("d-none");
+        feedback.classList.add("alert-secondary");
+        feedback.innerHTML = q.explanation;
+        $("self-assess").classList.remove("d-none");
+      }
+
+      function finalizeOpen(knewIt) {
+        if (knewIt) {
+          state.knew++;
+        } else {
+          state.didntKnow++;
+        }
+        $("self-assess").classList.add("d-none");
+        $("next-btn").classList.remove("d-none");
+        updateScoreboard();
+      }
+
+      function updateScoreboard() {
+        $("scoreboard").textContent =
+          `Richtig: ${state.correct} · Falsch: ${state.wrong} · ` +
+          `Gewusst: ${state.knew} · Nicht gewusst: ${state.didntKnow}`;
+      }
+
+      function nextQuestion() {
+        state.index++;
+        if (state.index >= state.queue.length) {
+          showResult();
+        } else {
+          showQuestion();
+        }
+      }
+
+      function showResult() {
+        $("quiz").classList.add("d-none");
+        const resultSection = $("result");
+        resultSection.classList.remove("d-none");
+        const totalMc = state.correct + state.wrong;
+        const totalOpen = state.knew + state.didntKnow;
+        const mcLine =
+          totalMc > 0
+            ? `Multiple-Choice: ${state.correct} von ${totalMc} richtig ` +
+              `(${Math.round((state.correct / totalMc) * 100)} %).`
+            : "Keine Multiple-Choice-Fragen beantwortet.";
+        const openLine =
+          totalOpen > 0
+            ? `Offene Fragen: ${state.knew} von ${totalOpen} als „gewusst" eingeschätzt.`
+            : "Keine offenen Fragen beantwortet.";
+        resultSection.querySelector(".alert").innerHTML =
+          `Durchlauf abgeschlossen: ${state.queue.length} Fragen beantwortet.<br>` +
+          `${mcLine}<br>${openLine}`;
+      }
+
+      $("start-btn").addEventListener("click", startQuiz);
+      $("reveal-btn").addEventListener("click", handleReveal);
+      $("knew-btn").addEventListener("click", () => finalizeOpen(true));
+      $("didnt-know-btn").addEventListener("click", () => finalizeOpen(false));
+      $("next-btn").addEventListener("click", nextQuestion);
+      $("restart-btn").addEventListener("click", () => {
+        $("result").classList.add("d-none");
+        $("setup").classList.remove("d-none");
+      });
+      $("abort-btn").addEventListener("click", () => {
+        $("quiz").classList.add("d-none");
+        $("setup").classList.remove("d-none");
+      });
+    </script>
+  </body>
+</html>
